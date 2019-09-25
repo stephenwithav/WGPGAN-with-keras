@@ -1,6 +1,5 @@
 import time
 import os
-import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
 
@@ -53,42 +52,6 @@ def load_dataset(dataset_path, batch_size, image_shape):
         class_mode=None)
 
     return dataset_generator
-
-# Displays a figure of the generated images and saves them in as .png image
-def save_generated_images(generated_images, epoch):
-
-    plt.figure(figsize=(5, 5))  # define the size of the whole plot
-
-    for i in range(4): # iterate through the number of image we want, 4 here
-        ax = plt.subplot(2,2,i+1) # 2 rows, 2 cols
-        image = generated_images[i, :, :, :] # select the i image
-        image += 1 
-        image *= 127.5 # denormalize (to train we normalize the data so to create the input we need to do decode the data)
-        im = ax.imshow(image.astype(np.uint8)) # convert the image in a readable form for matplotlib
-        plt.axis('off') # dont show the axis
-
-    plt.tight_layout() 
-    save_name = 'generated_images/generatedSamples_epoch' + str(
-        epoch + 1) + '.png' 
-
-    plt.savefig(save_name, bbox_inches='tight', pad_inches=0) # every given number of epoch, save this plot
-    plt.pause(0.0000000001)
-    plt.show()
-
-def save_loss(batches, adversarial_loss, discriminator_loss, epoch): # To plot the losses
-        plt.figure(1)
-        plt.plot(batches, adversarial_loss, color='green',
-                 label='Generator Loss')
-        plt.plot(batches, discriminator_loss, color='blue',
-                 label='Discriminator Loss')
-        plt.title("DCGAN Train")
-        plt.xlabel("Batch Iteration")
-        plt.ylabel("Loss")
-        if epoch == 0:
-            plt.legend()
-        plt.pause(0.0000000001)
-        plt.show()
-        plt.savefig('trainingLossPlot.png')
 
 # Creates the discriminator model. fake vs real, the image shape does not really matter in the discriminator
 # A block inside the disciminator is Convolution-batch normalization-activation layer 
@@ -235,8 +198,6 @@ def train_dcgan(batch_size, epochs, image_shape,noise_shape, dataset_path, previ
 
     # Dynamically change the plot
 
-    plt.ion()
-
     current_batch = 0
 
     # Let's train the DCGAN for n epochs
@@ -297,11 +258,7 @@ def train_dcgan(batch_size, epochs, image_shape,noise_shape, dataset_path, previ
             current_batch += 1
         
 
-
-        # Each epoch update the loss graphs and save the generated img after 25 epochs
-        save_loss(batches,adversarial_loss,discriminator_loss,epoch)
         if(epoch + 1) % 25 == 0:
-            save_generated_images(generated_images, epoch)    
             #save model, weights for retraining purposes and model for generation purposes 
             generator.save_weights('checkpoint/gen_'+ str(epochs) +'.h5')
             discriminator.save_weights('checkpoint/dis_'+ str(epochs) +'.h5')
